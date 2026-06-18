@@ -17,19 +17,20 @@ export async function loader() {
 
   const data = await res.json();
 
-  // 👉 根据常见结构做兼容
-  const url =
-    data?.data?.url ||
-    data?.url ||
-    JSON.stringify(data);
+  const url = data?.data?.url || data?.url || JSON.stringify(data);
 
-  return new Response(url, {
-    headers: {
-      "Content-Type": "text/plain",
-    },
-  });
+  return { url };
 }
 
+import { useLoaderData } from "react-router";
+
 export default function Chat() {
-  return null;
+  const { url } = useLoaderData();
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Chat URL</h2>
+      <p>{url}</p>
+    </div>
+  );
 }
