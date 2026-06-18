@@ -1,6 +1,6 @@
 client_id = "58ea0d7b99ede672681e64adb1daeabf"
 name = "hoymiles-chat"
-application_url = "https://marina-definitely-sim-flows.trycloudflare.com"
+application_url = "https://hoymiles-chat.onrender.com"
 embedded = true
 
 [access_scopes]
@@ -8,7 +8,7 @@ scopes = "write_products,write_metaobjects,write_metaobject_definitions"
 
 [auth]
 redirect_urls = [
-  "https://marina-definitely-sim-flows.trycloudflare.com/auth/callback"
+  "https://hoymiles-chat.onrender.com/auth/callback"
 ]
 
 [build]
@@ -17,7 +17,7 @@ automatically_update_urls_on_dev = true
 [app_proxy]
 prefix = "apps"
 subpath = "chat"
-url = "https://marina-definitely-sim-flows.trycloudflare.com"
+url = "https://hoymiles-chat.onrender.com"
 
 [webhooks]
 api_version = "2026-07"
