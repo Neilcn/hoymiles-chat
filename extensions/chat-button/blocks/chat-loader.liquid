@@ -1,0 +1,36 @@
+<script>
+(function () {
+
+  function initChat() {
+
+    const btn = document.querySelector('#live-chat-btn');
+
+    if (!btn || btn.dataset.chatBound) return;
+
+    btn.dataset.chatBound = "true";
+
+    btn.addEventListener('click', function (e) {
+
+      e.preventDefault();
+
+      window.location.href = '/apps/chat';
+
+    });
+
+  }
+
+  document.addEventListener('DOMContentLoaded', initChat);
+
+  // fallback for Shopify themes (important)
+  setInterval(initChat, 1000);
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "FS Chat Loader",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}
