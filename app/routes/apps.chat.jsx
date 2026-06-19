@@ -25,16 +25,33 @@ function languageFromLocale(value) {
   return LANGUAGE_MAP[base] ?? null;
 }
 
+function localeFromPath(pathname) {
+  if (!pathname) return null;
+  const firstSegment = pathname.split("/").filter(Boolean)[0];
+  return languageFromLocale(firstSegment);
+}
+
 function detectLanguageCode(request, reqUrl) {
   const localeFromQuery = reqUrl.searchParams.get("locale");
   const languageFromQuery = reqUrl.searchParams.get("language");
   const localeFromHeader = request.headers.get("x-shopify-locale");
   const acceptLanguage = request.headers.get("accept-language");
   const acceptLanguageFirst = acceptLanguage?.split(",")?.[0];
+  const referer = request.headers.get("referer");
+  let localeFromRefererPath = null;
+
+  if (referer) {
+    try {
+      localeFromRefererPath = localeFromPath(new URL(referer).pathname);
+    } catch {
+      localeFromRefererPath = null;
+    }
+  }
 
   return (
     languageFromLocale(localeFromQuery) ||
     languageFromLocale(languageFromQuery) ||
+    localeFromRefererPath ||
     languageFromLocale(localeFromHeader) ||
     languageFromLocale(acceptLanguageFirst) ||
     "en-US"

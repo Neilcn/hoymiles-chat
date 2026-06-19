@@ -1,5 +1,15 @@
 <script>
 (function () {
+  function detectStoreLocale() {
+    const langAttr = document.documentElement && document.documentElement.lang;
+    if (langAttr) return langAttr;
+
+    const pathMatch = window.location.pathname.match(/^\/([a-z]{2}(?:-[A-Z]{2})?)(?:\/|$)/);
+    if (pathMatch && pathMatch[1]) return pathMatch[1];
+
+    return 'en';
+  }
+
   function initChat() {
     if (document.body.dataset.chatDelegateBound) return;
 
@@ -12,7 +22,8 @@
       e.preventDefault();
 
       // Open a proxy URL immediately; backend resolves and redirects to chat URL.
-      window.open('/apps/chat?redirect=1', '_blank');
+      const locale = encodeURIComponent(detectStoreLocale());
+      window.open('/apps/chat?redirect=1&locale=' + locale, '_blank');
     });
 
   }
