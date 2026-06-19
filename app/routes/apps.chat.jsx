@@ -1,4 +1,6 @@
-export async function loader() {
+import { redirect, useLoaderData } from "react-router";
+
+export async function loader({ request }) {
   const res = await fetch(
     "https://apeu1.fscloud.com.cn/t/hoymilestest/mp/api/customa/new_ChatService/ChatService/GetChatPageUrlExtension",
     {
@@ -16,13 +18,24 @@ export async function loader() {
   );
 
   const data = await res.json();
+  const url = data?.Data;
+
+  const reqUrl = new URL(request.url);
+  if (reqUrl.searchParams.get("redirect") === "1") {
+    if (!url) {
+      throw new Response("Chat URL not available", { status: 502 });
+    }
+    throw redirect(url);
+  }
+
+  if (reqUrl.searchParams.get("json") === "1") {
+    return Response.json({ url });
+  }
 
   return {
-    url: data?.Data,
+    url,
   };
 }
-
-import { useLoaderData } from "react-router";
 
 export default function Chat() {
   const { url } = useLoaderData();

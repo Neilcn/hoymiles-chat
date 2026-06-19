@@ -1,20 +1,18 @@
 <script>
 (function () {
-
   function initChat() {
+    if (document.body.dataset.chatDelegateBound) return;
 
-    const btn = document.querySelector('#live-chat-btn');
+    document.body.dataset.chatDelegateBound = 'true';
 
-    if (!btn || btn.dataset.chatBound) return;
-
-    btn.dataset.chatBound = "true";
-
-    btn.addEventListener('click', function (e) {
+    document.body.addEventListener('click', async function (e) {
+      const trigger = e.target && e.target.closest('.open-chat-window');
+      if (!trigger) return;
 
       e.preventDefault();
 
-      window.location.href = '/apps/chat';
-
+      // Open a proxy URL immediately; backend resolves and redirects to chat URL.
+      window.open('/apps/chat?redirect=1', '_blank');
     });
 
   }
