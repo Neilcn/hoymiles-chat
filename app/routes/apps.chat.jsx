@@ -17,9 +17,9 @@ export async function loader() {
 
   const data = await res.json();
 
-  const url = data?.data?.url || data?.url || JSON.stringify(data);
-
-  return { url };
+  return {
+    url: data?.Data,
+  };
 }
 
 import { useLoaderData } from "react-router";
