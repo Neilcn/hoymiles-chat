@@ -63,7 +63,7 @@ export async function loader({ request }) {
   const language = detectLanguageCode(request, reqUrl);
 
   const res = await fetch(
-    "https://apeu1.fscloud.com.cn/t/hoymilestest/mp/api/customa/new_ChatService/ChatService/GetChatPageUrlExtension",
+    "https://apeu1.fscloud.com.cn/t/hoymiles/mp/api/customa/new_ChatService/ChatService/GetChatPageUrlExtension",
     {
       method: "POST",
       headers: {

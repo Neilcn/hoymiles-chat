@@ -1,5 +1,25 @@
 <script>
 (function () {
+  function findTriggerFromEvent(e) {
+    if (!e) return null;
+
+    if (typeof e.composedPath === 'function') {
+      const path = e.composedPath();
+      for (let i = 0; i < path.length; i++) {
+        const node = path[i];
+        if (node && node.nodeType === 1 && node.classList && node.classList.contains('open-chat-window')) {
+          return node;
+        }
+      }
+    }
+
+    if (e.target && typeof e.target.closest === 'function') {
+      return e.target.closest('.open-chat-window');
+    }
+
+    return null;
+  }
+
   function detectStoreLocale() {
     const langAttr = document.documentElement && document.documentElement.lang;
     if (langAttr) return langAttr;
@@ -16,7 +36,7 @@
     document.body.dataset.chatDelegateBound = 'true';
 
     document.body.addEventListener('click', async function (e) {
-      const trigger = e.target && e.target.closest('.open-chat-window');
+      const trigger = findTriggerFromEvent(e);
       if (!trigger) return;
 
       e.preventDefault();
@@ -24,7 +44,7 @@
       // Open a proxy URL immediately; backend resolves and redirects to chat URL.
       const locale = encodeURIComponent(detectStoreLocale());
       window.open('/apps/chat?redirect=1&locale=' + locale, '_blank');
-    });
+    }, true);
 
   }
 
