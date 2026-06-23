@@ -52,12 +52,30 @@
     right: 10px;
     width: 28px;
     height: 28px;
+    padding: 0;
     border: 0;
     border-radius: 999px;
     background: rgba(0, 0, 0, 0.08);
     color: #111;
+    font-size: 0;
+    line-height: 0;
     cursor: pointer;
     z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hoymiles-chat-close::before,
+  .hoymiles-chat-close::after {
+    content: none !important;
+  }
+
+  .hoymiles-chat-close-icon {
+    width: 14px;
+    height: 14px;
+    display: block;
+    pointer-events: none;
   }
 
   .hoymiles-chat-frame {
@@ -112,7 +130,21 @@
       close.className = 'hoymiles-chat-close';
       close.type = 'button';
       close.setAttribute('aria-label', 'Close chat');
-      close.textContent = 'x';
+
+      var closeIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      closeIcon.setAttribute('viewBox', '0 0 24 24');
+      closeIcon.setAttribute('aria-hidden', 'true');
+      closeIcon.classList.add('hoymiles-chat-close-icon');
+
+      var closePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      closePath.setAttribute('d', 'M6 6L18 18M18 6L6 18');
+      closePath.setAttribute('stroke', 'currentColor');
+      closePath.setAttribute('stroke-width', '2.2');
+      closePath.setAttribute('stroke-linecap', 'round');
+      closePath.setAttribute('fill', 'none');
+
+      closeIcon.appendChild(closePath);
+      close.appendChild(closeIcon);
 
       var frame = document.createElement('iframe');
       frame.className = 'hoymiles-chat-frame';
