@@ -1,0 +1,166 @@
+{% liquid
+  assign chat_proxy_path = chat_proxy_path | default: '/apps/chat'
+  assign launcher_text = launcher_text | default: 'Chat'
+%}
+
+<div class="hoymiles-chat-widget" data-chat-path="{{ chat_proxy_path | escape }}">
+  <button type="button" class="hoymiles-chat-launcher" aria-label="Open chat">
+    {{ launcher_text }}
+  </button>
+
+  <div class="hoymiles-chat-overlay" hidden></div>
+  <section class="hoymiles-chat-panel" aria-label="Chat window" hidden>
+    <button type="button" class="hoymiles-chat-close" aria-label="Close chat">x</button>
+    <iframe class="hoymiles-chat-frame" title="Chat" loading="lazy" allow="clipboard-read; clipboard-write"></iframe>
+  </section>
+</div>
+
+<style>
+  .hoymiles-chat-widget {
+    --chat-width: 400px;
+    --chat-height: 600px;
+    --chat-gap: 24px;
+    --chat-radius: 16px;
+    --chat-brand: #0f766e;
+    --chat-brand-strong: #0b5d56;
+  }
+
+  .hoymiles-chat-launcher {
+    position: fixed;
+    right: var(--chat-gap);
+    bottom: var(--chat-gap);
+    z-index: 9997;
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 18px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    background: linear-gradient(140deg, var(--chat-brand), var(--chat-brand-strong));
+    box-shadow: 0 10px 30px rgba(10, 88, 83, 0.35);
+    cursor: pointer;
+  }
+
+  .hoymiles-chat-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  .hoymiles-chat-panel {
+    position: fixed;
+    right: var(--chat-gap);
+    bottom: calc(var(--chat-gap) + 52px + 12px);
+    width: var(--chat-width);
+    height: var(--chat-height);
+    max-width: calc(100vw - var(--chat-gap));
+    max-height: calc(100vh - var(--chat-gap));
+    z-index: 9999;
+    border-radius: var(--chat-radius);
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+  }
+
+  .hoymiles-chat-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.08);
+    color: #111;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .hoymiles-chat-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  @media (max-width: 768px) {
+    .hoymiles-chat-widget {
+      --chat-gap: 12px;
+      --chat-radius: 14px;
+    }
+
+    .hoymiles-chat-launcher {
+      right: var(--chat-gap);
+      bottom: var(--chat-gap);
+    }
+
+    .hoymiles-chat-panel {
+      left: var(--chat-gap);
+      right: var(--chat-gap);
+      width: auto;
+      height: min(78vh, 600px);
+      max-width: none;
+      bottom: calc(var(--chat-gap) + 52px + 10px);
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var root = document.currentScript && document.currentScript.previousElementSibling;
+    while (root && !root.classList.contains('hoymiles-chat-widget')) {
+      root = root.previousElementSibling;
+    }
+
+    if (!root || root.dataset.chatInit === 'true') return;
+    root.dataset.chatInit = 'true';
+
+    function detectStoreLocale() {
+      var langAttr = document.documentElement && document.documentElement.lang;
+      if (langAttr) return langAttr;
+
+      var match = window.location.pathname.match(/^\/([a-z]{2}(?:-[A-Z]{2})?)(?:\/|$)/);
+      if (match && match[1]) return match[1];
+
+      return 'en';
+    }
+
+    var launcher = root.querySelector('.hoymiles-chat-launcher');
+    var overlay = root.querySelector('.hoymiles-chat-overlay');
+    var panel = root.querySelector('.hoymiles-chat-panel');
+    var closeButton = root.querySelector('.hoymiles-chat-close');
+    var frame = root.querySelector('.hoymiles-chat-frame');
+    var chatPath = root.getAttribute('data-chat-path') || '/apps/chat';
+
+    if (!launcher || !overlay || !panel || !closeButton || !frame) return;
+
+    function closeChat() {
+      overlay.hidden = true;
+      panel.hidden = true;
+    }
+
+    function openChat() {
+      var locale = encodeURIComponent(detectStoreLocale());
+      var chatUrl = chatPath + '?redirect=1&locale=' + locale;
+
+      if (frame.getAttribute('src') !== chatUrl) {
+        frame.setAttribute('src', chatUrl);
+      }
+
+      overlay.hidden = false;
+      panel.hidden = false;
+    }
+
+    launcher.addEventListener('click', openChat);
+    overlay.addEventListener('click', closeChat);
+    closeButton.addEventListener('click', closeChat);
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeChat();
+      }
+    });
+  })();
+</script>

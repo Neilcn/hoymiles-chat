@@ -1,0 +1,194 @@
+{% liquid
+  assign chat_proxy_path = chat_proxy_path | default: '/apps/chat'
+  assign trigger_selector = trigger_selector | default: '.open-chat-window'
+%}
+
+<div
+  id="hoymiles-chat-trigger-only"
+  data-chat-path="{{ chat_proxy_path | escape }}"
+  data-trigger-selector="{{ trigger_selector | escape }}"
+></div>
+
+<style>
+  .hoymiles-chat-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease;
+  }
+
+  .hoymiles-chat-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .hoymiles-chat-panel {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 400px;
+    height: 600px;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+    border: 0;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+    z-index: 9999;
+    display: none;
+    overflow: hidden;
+  }
+
+  .hoymiles-chat-panel.is-open {
+    display: block;
+  }
+
+  .hoymiles-chat-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.08);
+    color: #111;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .hoymiles-chat-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  @media (max-width: 768px) {
+    .hoymiles-chat-panel {
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      width: auto;
+      height: min(78vh, 600px);
+      max-width: none;
+      border-radius: 14px;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var configNode = document.getElementById('hoymiles-chat-trigger-only');
+    if (!configNode || configNode.dataset.chatInit === 'true') return;
+    configNode.dataset.chatInit = 'true';
+
+    function detectStoreLocale() {
+      var langAttr = document.documentElement && document.documentElement.lang;
+      if (langAttr) return langAttr;
+
+      var pathMatch = window.location.pathname.match(/^\/([a-z]{2}(?:-[A-Z]{2})?)(?:\/|$)/);
+      if (pathMatch && pathMatch[1]) return pathMatch[1];
+
+      return 'en';
+    }
+
+    function createContainer() {
+      var root = document.getElementById('hoymiles-chat-root');
+      if (root) return root;
+
+      root = document.createElement('div');
+      root.id = 'hoymiles-chat-root';
+
+      var overlay = document.createElement('div');
+      overlay.className = 'hoymiles-chat-overlay';
+
+      var panel = document.createElement('div');
+      panel.className = 'hoymiles-chat-panel';
+
+      var close = document.createElement('button');
+      close.className = 'hoymiles-chat-close';
+      close.type = 'button';
+      close.setAttribute('aria-label', 'Close chat');
+      close.textContent = 'x';
+
+      var frame = document.createElement('iframe');
+      frame.className = 'hoymiles-chat-frame';
+      frame.loading = 'lazy';
+      frame.title = 'Chat';
+      frame.allow = 'clipboard-read; clipboard-write';
+
+      panel.appendChild(close);
+      panel.appendChild(frame);
+      root.appendChild(overlay);
+      root.appendChild(panel);
+      document.body.appendChild(root);
+
+      function closeChat() {
+        overlay.classList.remove('is-open');
+        panel.classList.remove('is-open');
+      }
+
+      overlay.addEventListener('click', closeChat);
+      close.addEventListener('click', closeChat);
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          closeChat();
+        }
+      });
+
+      return root;
+    }
+
+    function openChat(url) {
+      var root = createContainer();
+      var overlay = root.querySelector('.hoymiles-chat-overlay');
+      var panel = root.querySelector('.hoymiles-chat-panel');
+      var frame = root.querySelector('.hoymiles-chat-frame');
+
+      if (!overlay || !panel || !frame) return;
+
+      if (frame.getAttribute('src') !== url) {
+        frame.setAttribute('src', url);
+      }
+
+      overlay.classList.add('is-open');
+      panel.classList.add('is-open');
+    }
+
+    function findTriggerFromEvent(e, selector) {
+      if (!e || !selector) return null;
+
+      if (typeof e.composedPath === 'function') {
+        var path = e.composedPath();
+        for (var i = 0; i < path.length; i++) {
+          var node = path[i];
+          if (node && node.nodeType === 1 && typeof node.matches === 'function' && node.matches(selector)) {
+            return node;
+          }
+        }
+      }
+
+      if (e.target && typeof e.target.closest === 'function') {
+        return e.target.closest(selector);
+      }
+
+      return null;
+    }
+
+    var selector = configNode.getAttribute('data-trigger-selector') || '.open-chat-window';
+    var chatPath = configNode.getAttribute('data-chat-path') || '/apps/chat';
+
+    document.body.addEventListener('click', function (event) {
+      var trigger = findTriggerFromEvent(event, selector);
+      if (!trigger) return;
+
+      event.preventDefault();
+
+      var locale = encodeURIComponent(detectStoreLocale());
+      openChat(chatPath + '?redirect=1&locale=' + locale);
+    }, true);
+  })();
+</script>

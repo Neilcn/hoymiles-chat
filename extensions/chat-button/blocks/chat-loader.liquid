@@ -1,5 +1,141 @@
 <script>
 (function () {
+  function ensureStyle() {
+    if (document.getElementById('hoymiles-chat-style')) return;
+
+    const style = document.createElement('style');
+    style.id = 'hoymiles-chat-style';
+    style.textContent = [
+      '.hoymiles-chat-overlay {',
+      '  position: fixed;',
+      '  inset: 0;',
+      '  background: rgba(0, 0, 0, 0.35);',
+      '  z-index: 9998;',
+      '  opacity: 0;',
+      '  pointer-events: none;',
+      '  transition: opacity 160ms ease;',
+      '}',
+      '.hoymiles-chat-overlay.is-open {',
+      '  opacity: 1;',
+      '  pointer-events: auto;',
+      '}',
+      '.hoymiles-chat-panel {',
+      '  position: fixed;',
+      '  right: 24px;',
+      '  bottom: 24px;',
+      '  width: 400px;',
+      '  height: 600px;',
+      '  max-width: calc(100vw - 24px);',
+      '  max-height: calc(100vh - 24px);',
+      '  border: 0;',
+      '  border-radius: 16px;',
+      '  background: #fff;',
+      '  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);',
+      '  z-index: 9999;',
+      '  display: none;',
+      '  overflow: hidden;',
+      '}',
+      '.hoymiles-chat-panel.is-open {',
+      '  display: block;',
+      '}',
+      '.hoymiles-chat-close {',
+      '  position: absolute;',
+      '  top: 10px;',
+      '  right: 10px;',
+      '  width: 28px;',
+      '  height: 28px;',
+      '  border: 0;',
+      '  border-radius: 999px;',
+      '  background: rgba(0, 0, 0, 0.08);',
+      '  color: #111;',
+      '  cursor: pointer;',
+      '  z-index: 2;',
+      '}',
+      '.hoymiles-chat-frame {',
+      '  width: 100%;',
+      '  height: 100%;',
+      '  border: 0;',
+      '}',
+      '@media (max-width: 768px) {',
+      '  .hoymiles-chat-panel {',
+      '    left: 12px;',
+      '    right: 12px;',
+      '    bottom: 12px;',
+      '    width: auto;',
+      '    height: min(78vh, 600px);',
+      '    max-width: none;',
+      '    border-radius: 14px;',
+      '  }',
+      '}'
+    ].join('\n');
+
+    document.head.appendChild(style);
+  }
+
+  function getOrCreateContainer() {
+    let root = document.getElementById('hoymiles-chat-root');
+    if (root) return root;
+
+    root = document.createElement('div');
+    root.id = 'hoymiles-chat-root';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'hoymiles-chat-overlay';
+
+    const panel = document.createElement('div');
+    panel.className = 'hoymiles-chat-panel';
+
+    const close = document.createElement('button');
+    close.className = 'hoymiles-chat-close';
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Close chat');
+    close.textContent = 'x';
+
+    const frame = document.createElement('iframe');
+    frame.className = 'hoymiles-chat-frame';
+    frame.loading = 'lazy';
+    frame.title = 'Chat';
+    frame.allow = 'clipboard-read; clipboard-write';
+
+    panel.appendChild(close);
+    panel.appendChild(frame);
+    root.appendChild(overlay);
+    root.appendChild(panel);
+    document.body.appendChild(root);
+
+    function closeChat() {
+      overlay.classList.remove('is-open');
+      panel.classList.remove('is-open');
+    }
+
+    overlay.addEventListener('click', closeChat);
+    close.addEventListener('click', closeChat);
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeChat();
+      }
+    });
+
+    return root;
+  }
+
+  function openChat(url) {
+    const root = getOrCreateContainer();
+    const overlay = root.querySelector('.hoymiles-chat-overlay');
+    const panel = root.querySelector('.hoymiles-chat-panel');
+    const frame = root.querySelector('.hoymiles-chat-frame');
+
+    if (!frame || !overlay || !panel) return;
+
+    if (frame.src !== url) {
+      frame.src = url;
+    }
+
+    overlay.classList.add('is-open');
+    panel.classList.add('is-open');
+  }
+
   function findTriggerFromEvent(e) {
     if (!e) return null;
 
@@ -34,6 +170,7 @@
     if (document.body.dataset.chatDelegateBound) return;
 
     document.body.dataset.chatDelegateBound = 'true';
+    ensureStyle();
 
     document.body.addEventListener('click', async function (e) {
       const trigger = findTriggerFromEvent(e);
@@ -41,9 +178,8 @@
 
       e.preventDefault();
 
-      // Open a proxy URL immediately; backend resolves and redirects to chat URL.
       const locale = encodeURIComponent(detectStoreLocale());
-      window.open('/apps/chat?redirect=1&locale=' + locale, '_blank');
+      openChat('/apps/chat?redirect=1&locale=' + locale);
     }, true);
 
   }
